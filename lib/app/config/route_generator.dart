@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notiq/app/config/app_routes.dart';
 import 'package:notiq/ui/screens/home_screen.dart';
 import 'package:notiq/ui/screens/login_screen.dart';
+import 'package:notiq/ui/screens/register_screen.dart';
 import 'package:notiq/ui/screens/splash_screen.dart';
 
 class RouteGenerator {
@@ -13,6 +14,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => HomeScreen());
       case AppRoutes.login:
         return MaterialPageRoute(builder: (_) => LoginScreen());
+      case AppRoutes.register:
+        return MaterialPageRoute(builder: (_) => RegisterScreen());
       default:
         return _errorRoute();
     }
