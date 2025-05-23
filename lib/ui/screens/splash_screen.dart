@@ -17,7 +17,7 @@ class SplashScreen extends StatelessWidget {
             Icon(Icons.notifications_active, size: 80, color: Colors.white),
             const SizedBox(height: 24),
             Text(
-              'NotIQ',
+              'NotifIQ',
               style: theme.textTheme.titleLarge!.copyWith(
                 fontSize: 40,
                 color: Colors.white,

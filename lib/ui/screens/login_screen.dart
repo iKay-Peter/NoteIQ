@@ -82,7 +82,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  SubmitButton(text: 'Login', onPressed: () {}),
+                  SubmitButton(
+                    text: 'Login',
+                    onPressed: () {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.home,
+                        (route) => false,
+                      );
+                    },
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     children: [

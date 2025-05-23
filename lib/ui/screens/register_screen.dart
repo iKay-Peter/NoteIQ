@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notiq/app/config/app_routes.dart';
 import 'package:notiq/ui/widgets/buttons/sign_in_with_google.dart';
 import 'package:notiq/ui/widgets/buttons/submit_button.dart';
 import 'package:notiq/ui/widgets/input/text_field.dart';
@@ -96,7 +97,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         },
                       ),
                       const SizedBox(height: 20),
-                      SubmitButton(text: 'Register', onPressed: () {}),
+                      SubmitButton(
+                        text: 'Register',
+                        onPressed: () {
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            AppRoutes.welcome,
+                            (route) => false,
+                          );
+                        },
+                      ),
                       const SizedBox(height: 10),
                       Row(
                         children: [
