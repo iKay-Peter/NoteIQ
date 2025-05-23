@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notiq/app/config/app_routes.dart';
 import 'package:notiq/app/theme/app_theme.dart';
 
 class HomePage extends StatelessWidget {
@@ -62,7 +63,9 @@ class HomePage extends StatelessWidget {
                   title: 'Tasks',
                   description: 'View your tasks',
                   icon: Icons.check_circle_outline_rounded,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(AppRoutes.task);
+                  },
                 ),
                 TaskButtons(
                   title: 'Reminders',
@@ -85,15 +88,44 @@ class HomePage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text(
-                  "Today's Tasks",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              "Projects",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Scrollbar(
+                child: ListView(
+                  primary: true,
+                  scrollDirection: Axis.horizontal,
+                  physics: AlwaysScrollableScrollPhysics(),
+                  children: [
+                    ProjectCards(
+                      tasks: 10,
+                      title: "Mobile App",
+                      icon: Icons.mobile_friendly,
+                      color: Apptheme.liteBlue,
+                    ),
+                    ProjectCards(
+                      tasks: 12,
+                      title: "Web Design",
+                      icon: Icons.web,
+                      color: Apptheme.darkGreen,
+                    ),
+                    ProjectCards(
+                      tasks: 15,
+                      title: "UI/UX Design",
+                      icon: Icons.design_services,
+                      color: Apptheme.lightRed,
+                    ),
+                  ],
                 ),
-                Text("See All", style: TextStyle(color: Apptheme.orange)),
-              ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "Today's Tasks",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Expanded(
@@ -138,11 +170,58 @@ class HomePage extends StatelessWidget {
   }
 }
 
+class ProjectCards extends StatelessWidget {
+  final int tasks;
+  final String title;
+  final IconData icon;
+  final Color color;
+  const ProjectCards({
+    super.key,
+    required this.tasks,
+    required this.title,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 150,
+      margin: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.white, size: 24),
+          Text(
+            "$tasks Tasks",
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class TaskButtons extends StatelessWidget {
   final String title;
   final String description;
   final IconData icon;
-  final Function onPressed;
+  final Function()? onPressed;
+
   const TaskButtons({
     super.key,
     required this.title,
@@ -153,29 +232,32 @@ class TaskButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: Colors.grey),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon),
-              SizedBox(width: 10),
-              Text(
-                title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          Text(description, style: TextStyle(fontSize: 10)),
-        ],
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(color: Colors.grey),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon),
+                SizedBox(width: 10),
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            Text(description, style: TextStyle(fontSize: 10)),
+          ],
+        ),
       ),
     );
   }
