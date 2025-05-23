@@ -1,40 +1,57 @@
 import 'package:flutter/material.dart';
 
 class Apptheme {
-  static const Color successGreen = Color(0xFF28a745);
-  static const Color infoBlue = Color(0xFF17a2b8);
-  static const Color dangerRed = Color(0xFFdc3545);
-  static const Color warningYellow = Color(0xFFffc107);
-  static const Color bgGrey = Color(0xFFF8F9FB);
+  static const Color orange = Color(0xFFFF8B2C);
+  static const Color darkGreen = Color(0xFF129476);
+  static const Color liteBlue = Color(0xFF37C2FF);
+  static const Color black = Color(0xFF121212);
+  static const Color blue = Color(0xFF557aff);
+  static const Color lightRed = Color.fromRGBO(255, 120, 95, 1);
+  static const Color purple = Color(0xFF8d6fff);
 
   static ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    primaryColor: successGreen,
-    colorScheme: ColorScheme.light(primary: successGreen, secondary: infoBlue),
+    primaryColor: orange,
+    colorScheme: ColorScheme.light(primary: darkGreen, secondary: liteBlue),
     cardColor: Colors.white,
-    scaffoldBackgroundColor: bgGrey,
+    scaffoldBackgroundColor: Colors.white,
     textTheme: TextTheme(
       titleLarge: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: 'Onest',
         fontWeight: FontWeight.w900,
         fontSize: 24,
       ),
       titleMedium: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: 'Onest',
         fontWeight: FontWeight.w700,
         fontSize: 18,
       ),
       titleSmall: TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: 'Onest',
         fontWeight: FontWeight.w500,
         fontSize: 14,
       ),
-      bodyLarge: TextStyle(fontFamily: 'SourceSansPro', fontSize: 18),
-      bodyMedium: TextStyle(fontFamily: 'SourceSansPro', fontSize: 16),
+      bodyLarge: TextStyle(fontFamily: 'Onest', fontSize: 18),
+      bodyMedium: TextStyle(fontFamily: 'Onest', fontSize: 16),
       bodySmall: TextStyle(
-        fontFamily: 'SourceSansPro',
+        fontFamily: 'Onest',
         fontWeight: FontWeight.w100,
         fontSize: 14,
+      ),
+      labelLarge: TextStyle(
+        fontFamily: 'Onest',
+        fontWeight: FontWeight.w700,
+        fontSize: 16,
+      ),
+      labelMedium: TextStyle(
+        fontFamily: 'Onest',
+        fontWeight: FontWeight.w500,
+        fontSize: 14,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: 'Onest',
+        fontWeight: FontWeight.w400,
+        fontSize: 12,
       ),
     ),
     dropdownMenuTheme: DropdownMenuThemeData(
