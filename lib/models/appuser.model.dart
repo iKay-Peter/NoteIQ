@@ -4,6 +4,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:postgrest/src/types.dart';
 import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
@@ -11,6 +12,7 @@ import 'package:uuid/uuid.dart';
 )
 class AppUser extends OfflineFirstWithSupabaseModel {
   final String email;
+  final String? user_id;
   final String? name;
   final String? avatarUrl;
 
@@ -21,6 +23,21 @@ class AppUser extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  AppUser({String? id, required this.email, this.name, this.avatarUrl})
-    : id = id ?? const Uuid().v4();
+  AppUser({
+    String? id,
+    required this.email,
+    this.user_id,
+    this.name,
+    this.avatarUrl,
+  }) : id = id ?? const Uuid().v4();
+
+  static AppUser fromJson(PostgrestMap response) {
+    return AppUser(
+      id: response['id'],
+      email: response['email'],
+      user_id: response['user_id'],
+      name: response['name'],
+      avatarUrl: response['avatar_url'],
+    );
+  }
 }

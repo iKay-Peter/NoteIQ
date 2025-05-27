@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:notiq/app/config/app_routes.dart';
+import 'package:notiq/app/config/routes/app_routes.dart';
 import 'package:notiq/app/theme/app_theme.dart';
 import 'package:notiq/ui/screens/home_screen.dart';
 

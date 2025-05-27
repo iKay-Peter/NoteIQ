@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notiq/app/config/app_routes.dart';
+import 'package:notiq/app/config/routes/app_routes.dart';
 import 'package:notiq/app/theme/app_theme.dart';
 
 class SplashScreen extends StatelessWidget {

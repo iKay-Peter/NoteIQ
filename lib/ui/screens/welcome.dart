@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notiq/app/config/app_routes.dart';
+import 'package:notiq/app/config/routes/app_routes.dart';
 import 'package:notiq/app/theme/app_theme.dart';
 
 class Welcome extends StatefulWidget {
@@ -60,7 +60,7 @@ class _WelcomeState extends State<Welcome> {
                         ),
                       ),
                       child: Text(
-                        "Let's Start",
+                        "Get Started",
                         style: theme.textTheme.titleMedium!.copyWith(
                           color: Colors.white,
                           fontSize: 16,

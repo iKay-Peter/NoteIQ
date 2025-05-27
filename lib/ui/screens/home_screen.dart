@@ -1,12 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:notiq/app/config/app_routes.dart';
+import 'package:notiq/app/config/routes/app_routes.dart';
 import 'package:notiq/app/theme/app_theme.dart';
+import 'package:notiq/data/providers/registration_provider.dart';
+import 'package:provider/provider.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
   Widget build(BuildContext context) {
+    var authProvider = Provider.of<RegistrationProvider>(
+      context,
+      listen: false,
+    );
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -23,9 +35,9 @@ class HomePage extends StatelessWidget {
                     children: [
                       Text('Hi there,', style: TextStyle(fontSize: 12)),
                       Text(
-                        'Peter iKay',
+                        authProvider.user.name!,
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 30,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

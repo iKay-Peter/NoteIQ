@@ -1,24 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:notiq/app/config/app_routes.dart';
-import 'package:notiq/app/config/route_generator.dart';
+import 'package:notiq/app/config/get_it.dart';
+import 'package:notiq/app/config/routes/app_routes.dart';
+import 'package:notiq/app/config/routes/route_generator.dart';
 import 'package:notiq/app/theme/app_theme.dart';
 import 'package:notiq/brick/repository.dart';
+import 'package:notiq/data/providers/registration_provider.dart';
+import 'package:notiq/data/repositories/auth_repository.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 Future<void> main() async {
-  // Initialize FFI for desktop or test environments
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 
   await Repository.configure(databaseFactory);
   await Repository().initialize();
-  await Repository().initialize();
 
-  //TODO: setupDependencies(navigatorKey);
+  setupDependencies(navigatorKey);
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => RegistrationProvider(getIt<AuthRepository>()),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -28,7 +39,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'NoteIQ',
+      title: 'NotifIQ',
       theme: Apptheme.lightTheme,
       initialRoute: AppRoutes.splash, // Or your initial route
       onGenerateRoute: RouteGenerator.generateRoute,

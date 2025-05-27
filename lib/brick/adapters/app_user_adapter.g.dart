@@ -8,6 +8,7 @@ Future<AppUser> _$AppUserFromSupabase(
 }) async {
   return AppUser(
     email: data['email'] as String,
+    user_id: data['user_id'] == null ? null : data['user_id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
     avatarUrl: data['avatar_url'] == null
         ? null
@@ -23,6 +24,7 @@ Future<Map<String, dynamic>> _$AppUserToSupabase(
 }) async {
   return {
     'email': instance.email,
+    'user_id': instance.user_id,
     'name': instance.name,
     'avatar_url': instance.avatarUrl,
     'id': instance.id,
@@ -36,6 +38,7 @@ Future<AppUser> _$AppUserFromSqlite(
 }) async {
   return AppUser(
     email: data['email'] as String,
+    user_id: data['user_id'] == null ? null : data['user_id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
     avatarUrl: data['avatar_url'] == null
         ? null
@@ -51,6 +54,7 @@ Future<Map<String, dynamic>> _$AppUserToSqlite(
 }) async {
   return {
     'email': instance.email,
+    'user_id': instance.user_id,
     'name': instance.name,
     'avatar_url': instance.avatarUrl,
     'id': instance.id,
@@ -70,6 +74,10 @@ class AppUserAdapter extends OfflineFirstWithSupabaseAdapter<AppUser> {
     'email': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'email',
+    ),
+    'user_id': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'user_id',
     ),
     'name': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -99,6 +107,12 @@ class AppUserAdapter extends OfflineFirstWithSupabaseAdapter<AppUser> {
     'email': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'email',
+      iterable: false,
+      type: String,
+    ),
+    'user_id': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'user_id',
       iterable: false,
       type: String,
     ),
