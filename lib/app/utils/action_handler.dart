@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:notiq/app/config/routes/app_routes.dart';
-import 'package:notiq/app/exception_handler/app_exceptions.dart';
 import 'package:notiq/app/utils/generic_response.dart';
 import 'package:notiq/ui/widgets/notification/toastification.dart';
 

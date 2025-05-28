@@ -1,9 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:notiq/app/config/routes/app_routes.dart';
 import 'package:notiq/app/theme/app_theme.dart';
+import 'package:notiq/app/utils/action_handler.dart';
+import 'package:notiq/data/providers/registration_provider.dart';
+import 'package:provider/provider.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthState();
+    });
+  }
+
+  Future<void> _checkAuthState() async {
+    handleAction(
+      context: context,
+      call: Provider.of<RegistrationProvider>(
+        context,
+        listen: false,
+      ).checkAuthState,
+      showSuccessNotification: false,
+      showErrorNotification: false,
+      onSuccess: (data) =>
+          Navigator.pushReplacementNamed(context, AppRoutes.home),
+      onError: () => Navigator.pushReplacementNamed(context, AppRoutes.login),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,35 +62,8 @@ class SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 48),
 
-            //TODO: CircularProgressIndicator(
-            //   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            // ),
-            const SizedBox(height: 48),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Navigate to the home screen
-                Navigator.pushReplacementNamed(context, AppRoutes.login);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Apptheme.orange,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 50,
-                  vertical: 20,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              icon: Icon(Icons.arrow_forward, color: Apptheme.orange, size: 25),
-              label: Text(
-                'Get Started',
-                style: theme.textTheme.titleMedium!.copyWith(
-                  color: Apptheme.orange,
-                  fontSize: 16,
-                ),
-              ),
-              iconAlignment: IconAlignment.end,
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ],
         ),

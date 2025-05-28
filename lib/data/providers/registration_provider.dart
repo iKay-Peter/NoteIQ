@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notiq/app/exception_handler/app_exceptions.dart';
 import 'package:notiq/app/utils/generic_response.dart';
+import 'package:notiq/app/utils/user_session_helper.dart';
 import 'package:notiq/data/repositories/auth_repository.dart';
 import 'package:notiq/models/appuser.model.dart';
 
@@ -61,13 +62,43 @@ class RegistrationProvider with ChangeNotifier {
       var response = await _authRepository.login(email, password);
       if (response.isSuccess) {
         var getUserResponse = await _authRepository.getUser(email);
-        if (getUserResponse.isSuccess) _user = getUserResponse.data!;
+        if (getUserResponse.isSuccess) {
+          _user = getUserResponse.data!;
+          UserSession().setUser(_user);
+        }
       }
       return response;
     } on NotConfirmedException {
       rethrow;
     } catch (error) {
       return GenericResponse(isSuccess: false, message: error.toString());
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<GenericResponse> checkAuthState() async {
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(Durations.extralong4);
+
+    try {
+      // Check Brick local storage first
+      final users = await _authRepository.getCurrentUser();
+      if (users.data != null) {
+        // User exists locally, navigate to home
+        _user = users.data!;
+        UserSession().setUser(_user);
+      }
+      return GenericResponse(
+        isSuccess: users.isSuccess,
+        message: users.message,
+      );
+    } catch (e) {
+      print('Error checking auth state: $e');
+      return GenericResponse(isSuccess: false, message: e.toString());
     } finally {
       _isLoading = false;
       notifyListeners();

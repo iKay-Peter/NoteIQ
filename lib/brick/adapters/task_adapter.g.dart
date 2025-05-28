@@ -7,6 +7,7 @@ Future<Task> _$TaskFromSupabase(
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return Task(
+    user_id: data['user_id'] as String,
     title: data['title'] as String,
     description: data['description'] == null
         ? null
@@ -30,6 +31,7 @@ Future<Map<String, dynamic>> _$TaskToSupabase(
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return {
+    'user_id': instance.user_id,
     'title': instance.title,
     'description': instance.description,
     'due_date': instance.dueDate?.toIso8601String(),
@@ -47,6 +49,7 @@ Future<Task> _$TaskFromSqlite(
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return Task(
+    user_id: data['user_id'] as String,
     title: data['title'] as String,
     description: data['description'] == null
         ? null
@@ -70,6 +73,7 @@ Future<Map<String, dynamic>> _$TaskToSqlite(
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return {
+    'user_id': instance.user_id,
     'title': instance.title,
     'description': instance.description,
     'due_date': instance.dueDate?.toIso8601String(),
@@ -91,6 +95,10 @@ class TaskAdapter extends OfflineFirstWithSupabaseAdapter<Task> {
   final defaultToNull = true;
   @override
   final fieldsToSupabaseColumns = {
+    'user_id': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'user_id',
+    ),
     'title': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'title',
@@ -135,6 +143,12 @@ class TaskAdapter extends OfflineFirstWithSupabaseAdapter<Task> {
       columnName: '_brick_id',
       iterable: false,
       type: int,
+    ),
+    'user_id': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'user_id',
+      iterable: false,
+      type: String,
     ),
     'title': const RuntimeSqliteColumnDefinition(
       association: false,

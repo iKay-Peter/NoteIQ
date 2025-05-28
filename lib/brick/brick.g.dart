@@ -9,7 +9,9 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:uuid/uuid.dart';// GENERATED CODE DO NOT EDIT
+import 'package:uuid/uuid.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:postgrest/src/types.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
@@ -21,12 +23,14 @@ import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
 import '../models/alarm.model.dart';
 import '../models/appuser.model.dart';
+import '../models/category.model.dart';
 import '../models/note.model.dart';
 import '../models/reminder.model.dart';
 import '../models/task.model.dart';
 
 part 'adapters/alarm_adapter.g.dart';
 part 'adapters/app_user_adapter.g.dart';
+part 'adapters/category_adapter.g.dart';
 part 'adapters/note_adapter.g.dart';
 part 'adapters/reminder_adapter.g.dart';
 part 'adapters/task_adapter.g.dart';
@@ -35,6 +39,7 @@ part 'adapters/task_adapter.g.dart';
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Alarm: AlarmAdapter(),
   AppUser: AppUserAdapter(),
+  Category: CategoryAdapter(),
   Note: NoteAdapter(),
   Reminder: ReminderAdapter(),
   Task: TaskAdapter()
@@ -45,6 +50,7 @@ final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Alarm: AlarmAdapter(),
   AppUser: AppUserAdapter(),
+  Category: CategoryAdapter(),
   Note: NoteAdapter(),
   Reminder: ReminderAdapter(),
   Task: TaskAdapter()

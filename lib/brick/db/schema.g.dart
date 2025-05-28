@@ -1,20 +1,24 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20250527193946.migration.dart';
 part '20250522115749.migration.dart';
 part '20250522122827.migration.dart';
 part '20250524165539.migration.dart';
+part '20250527111357.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20250527193946(),
   const Migration20250522115749(),
   const Migration20250522122827(),
   const Migration20250524165539(),
+  const Migration20250527111357(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250524165539,
+  20250527111357,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -51,6 +55,24 @@ final schema = Schema(
         SchemaColumn('user_id', Column.varchar),
         SchemaColumn('name', Column.varchar),
         SchemaColumn('avatar_url', Column.varchar),
+        SchemaColumn('id', Column.varchar, unique: true),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'Category',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('name', Column.varchar),
+        SchemaColumn('description', Column.varchar),
         SchemaColumn('id', Column.varchar, unique: true),
       },
       indices: <SchemaIndex>{
@@ -107,6 +129,7 @@ final schema = Schema(
           nullable: false,
           isPrimaryKey: true,
         ),
+        SchemaColumn('user_id', Column.varchar),
         SchemaColumn('title', Column.varchar),
         SchemaColumn('description', Column.varchar),
         SchemaColumn('due_date', Column.datetime),

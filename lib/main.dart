@@ -5,7 +5,9 @@ import 'package:notiq/app/config/routes/route_generator.dart';
 import 'package:notiq/app/theme/app_theme.dart';
 import 'package:notiq/brick/repository.dart';
 import 'package:notiq/data/providers/registration_provider.dart';
+import 'package:notiq/data/providers/task_provider.dart';
 import 'package:notiq/data/repositories/auth_repository.dart';
+import 'package:notiq/data/repositories/task_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -25,6 +27,9 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(
           create: (context) => RegistrationProvider(getIt<AuthRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => TaskProvider(getIt<TaskRepository>()),
         ),
       ],
       child: const MyApp(),

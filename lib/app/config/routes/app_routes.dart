@@ -5,5 +5,7 @@ abstract class AppRoutes {
   static const String register = '/register';
   static const String welcome = '/welcome';
   static const String task = '/task';
+  static const String networkError = '/network-error';
   static const String completeRegistration = '/complete-registration';
+  static const String allTasks = '/all-tasks';
 }
