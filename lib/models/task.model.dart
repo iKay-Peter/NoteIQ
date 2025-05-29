@@ -2,8 +2,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
-
-enum Priority { low, medium, high }
+import 'package:notiq/app/utils/priority.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'tasks'),
@@ -14,7 +13,7 @@ class Task extends OfflineFirstWithSupabaseModel {
   final String? description;
   final DateTime? dueDate;
   final bool isCompleted;
-  final String? priority; // Stores Priority enum value as string
+  final String? _priority; // Internal storage for Priority enum
   final String? tag;
   final bool isRecurring;
   final Duration? recurrenceInterval;
@@ -30,23 +29,25 @@ class Task extends OfflineFirstWithSupabaseModel {
     this.description,
     this.dueDate,
     this.isCompleted = false,
-    this.priority,
+    String? priority,
     this.tag,
     this.isRecurring = false,
     this.recurrenceInterval,
-  }) : id = id ?? const Uuid().v4();
+  }) : _priority = priority,
+       id = id ?? const Uuid().v4();
 
-  // Convert string priority to enum
-  Priority? get priorityEnum => priority != null
+  String? get priority => _priority;
+
+  Priority? get priorityValue => _priority != null
       ? Priority.values.firstWhere(
-          (p) => p.name.toLowerCase() == priority!.toLowerCase(),
+          (p) => p.name.toLowerCase() == _priority!.toLowerCase(),
           orElse: () => Priority.medium,
         )
       : null;
 
-  // Create a new Task with the Priority enum value converted to string
   Task copyWith({
     String? id,
+    String? user_id,
     String? title,
     DateTime? dueDate,
     bool? isCompleted,
@@ -57,13 +58,13 @@ class Task extends OfflineFirstWithSupabaseModel {
     Duration? recurrenceInterval,
   }) {
     return Task(
-      user_id: this.user_id,
+      user_id: user_id ?? this.user_id,
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
       dueDate: dueDate ?? this.dueDate,
       isCompleted: isCompleted ?? this.isCompleted,
-      priority: priority?.name.toLowerCase() ?? this.priority,
+      priority: priority?.name.toLowerCase() ?? _priority,
       tag: tag ?? this.tag,
       isRecurring: isRecurring ?? this.isRecurring,
       recurrenceInterval: recurrenceInterval ?? this.recurrenceInterval,

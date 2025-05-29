@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:notiq/ui/screens/home_screen.dart';
+import 'package:notiq/app/theme/app_theme.dart';
+import 'package:notiq/ui/screens/task_details_screen.dart';
 
 class TaskCard extends StatefulWidget {
   final String title;
   final String time;
   final bool isCompleted;
+  final String taskId;
   final Function(bool?) onChanged;
 
   const TaskCard({
@@ -12,6 +14,7 @@ class TaskCard extends StatefulWidget {
     required this.title,
     required this.time,
     required this.isCompleted,
+    required this.taskId,
     required this.onChanged,
   });
 
@@ -30,49 +33,79 @@ class _TaskCardState extends State<TaskCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-        child: Row(
-          children: [
-            Checkbox(
-              value: _isChecked,
-              onChanged: (bool? value) async {
-                if (value != null) {
-                  setState(() => _isChecked = value);
-                  // Wait for animation
-                  await Future.delayed(const Duration(milliseconds: 300));
-                  // Call the actual onChanged handler
-                  widget.onChanged(value);
-                }
-              },
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TaskDetailsScreen(taskId: widget.taskId),
             ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    decoration: _isChecked ? TextDecoration.lineThrough : null,
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: Checkbox(
+                  value: _isChecked,
+                  onChanged: (bool? value) async {
+                    if (value != null) {
+                      setState(() => _isChecked = value);
+                      widget.onChanged(value);
+                    }
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
                   ),
+                  side: BorderSide(color: Colors.grey.shade400, width: 1.5),
+                  activeColor: Apptheme.orange,
                 ),
-                Text(
-                  widget.time,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        decoration: _isChecked
+                            ? TextDecoration.lineThrough
+                            : null,
+                        color: _isChecked
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.time,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.grey.shade600,
+                        decoration: _isChecked
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const Spacer(),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 18,
-              color: Colors.grey,
-            ),
-          ],
+              ),
+              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+            ],
+          ),
         ),
       ),
     );

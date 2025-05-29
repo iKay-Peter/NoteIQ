@@ -48,3 +48,10 @@ class UnknownException extends AppException {
   @override
   String toString() => 'Unknown Exception: $message';
 }
+
+class AiParserException extends AppException {
+  const AiParserException([super.message = 'Error Parsing Text']);
+
+  @override
+  String toString() => 'Error Parsing Text: $message';
+}
