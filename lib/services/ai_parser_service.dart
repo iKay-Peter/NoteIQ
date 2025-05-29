@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:notiq/app/config/env.dart';
 import 'package:notiq/app/exception_handler/app_exceptions.dart';
 import 'package:notiq/app/utils/user_session_helper.dart';
 import 'package:notiq/models/task.model.dart';
@@ -11,8 +12,8 @@ class AiParserService {
   final String baseUrl;
 
   AiParserService({
-    this.apiKey = "a84f7f0f56874ccd8be475fc8f1f34df",
-    this.baseUrl = "https://api.aimlapi.com/v1",
+    this.apiKey = Env.apiKey,
+    this.baseUrl = "https://api.aimlapi.com/v1/chat/completions",
   });
 
   /// Parse natural language text into a list of tasks using LLM
@@ -56,7 +57,15 @@ class AiParserService {
         },
         body: jsonEncode({
           'model': 'gpt-4o-mini',
-          'messages': jsonEncode({'role': 'user', 'content': prompt}),
+          'messages': [
+            // Changed to array format
+            {
+              'role': 'system',
+              'content':
+                  'You are a task management assistant that parses text into structured task data.',
+            },
+            {'role': 'user', 'content': prompt},
+          ],
           'temperature': 0.7,
           'top_p': 0.7,
           'frequency_penalty': 1,
@@ -65,7 +74,7 @@ class AiParserService {
         }),
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 200 && response.statusCode != 201) {
         throw AiParserException(
           'API request failed. Status code: ${response.statusCode}, Body: ${response.body}',
         );
@@ -84,12 +93,13 @@ class AiParserService {
       }
 
       return taskList.map((taskData) {
+        var date = taskData['dueDate'] != null
+            ? DateTime.parse(taskData['dueDate'] as String)
+            : null;
         return Task(
           user_id: UserSession().getUser!.id,
           title: taskData['title'] as String,
-          dueDate: taskData['dueDate'] != null
-              ? DateTime.parse(taskData['dueDate'] as String)
-              : null,
+          dueDate: date,
           priority: taskData['priority'] as String?,
           tag: taskData['category'] as String?,
         );

@@ -1,11 +1,139 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:notiq/app/theme/app_theme.dart';
 import 'package:notiq/app/utils/action_handler.dart';
 import 'package:notiq/data/providers/task_provider.dart';
+import 'package:notiq/models/task.model.dart';
 import 'package:notiq/services/ai_parser_service.dart';
 import 'package:notiq/ui/dialogs/task_details_dialog.dart';
 import 'package:notiq/ui/screens/home_screen.dart';
+import 'package:notiq/ui/widgets/notification/toastification.dart';
 import 'package:provider/provider.dart';
+
+class ParseConfirmationDialog extends StatelessWidget {
+  final List<Task> tasks;
+
+  const ParseConfirmationDialog({super.key, required this.tasks});
+
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return 'No due date';
+    final dateFormatter = DateFormat('MMM d, y');
+    final timeFormatter = DateFormat('h:mm a');
+    return '${dateFormatter.format(dateTime)} at ${timeFormatter.format(dateTime)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Confirm Parsed Tasks'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'The following tasks were parsed:',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            ...tasks
+                .map(
+                  (task) => Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.title,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.schedule,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _formatDateTime(task.dueDate),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (task.priority != null) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.flag,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Priority: ${task.priority}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (task.tag != null) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.label,
+                                  size: 16,
+                                  color: Colors.grey[600],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Category: ${task.tag}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          style: FilledButton.styleFrom(backgroundColor: Apptheme.orange),
+          child: const Text('Add Tasks'),
+        ),
+      ],
+    );
+  }
+}
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({super.key});
@@ -49,26 +177,39 @@ class _HomeLayoutState extends State<HomeLayout> {
       );
 
       if (context.mounted) {
-        for (final task in tasks) {
-          provider.setNewTaskTitle(task.title);
-          if (task.dueDate != null) {
-            provider.updateTaskDetails(dueDate: task.dueDate);
+        // Show confirmation dialog
+        final shouldAdd = await showDialog<bool>(
+          context: context,
+          builder: (context) => ParseConfirmationDialog(tasks: tasks),
+        );
+
+        // If user confirmed, add the tasks
+        if (shouldAdd == true && context.mounted) {
+          for (final task in tasks) {
+            provider.setNewTaskTitle(task.title);
+            provider.updateTaskDetails(
+              dueDate: task.dueDate,
+              dueTime: task.dueDate != null
+                  ? TimeOfDay.fromDateTime(task.dueDate!)
+                  : null,
+              priority: task.priority,
+              tag: task.tag,
+            );
+            await provider.addTask();
           }
-          await provider.addTask();
-        }
-        taskController.clear();
-        setModalState(() {
           taskController.clear();
-        });
-        Navigator.of(context).pop();
+          setModalState(() {
+            taskController.clear();
+          });
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to parse text: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+        ShowNotification.error(
+          context,
+          'Error',
+          'Failed to parse text: ${e.toString()}',
         );
       }
     }
@@ -194,7 +335,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                                           setState(() {
                                             isDisabled = true;
                                           });
-                                          Navigator.of(context).pop();
+                                          // Navigator.of(context).pop();
                                         },
                                       );
                                     }
