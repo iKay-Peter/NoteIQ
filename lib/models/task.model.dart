@@ -40,7 +40,7 @@ class Task extends OfflineFirstWithSupabaseModel {
 
   Priority? get priorityValue => _priority != null
       ? Priority.values.firstWhere(
-          (p) => p.name.toLowerCase() == _priority!.toLowerCase(),
+          (p) => p.name.toLowerCase() == _priority.toLowerCase(),
           orElse: () => Priority.medium,
         )
       : null;

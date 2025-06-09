@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:notiq/app/theme/app_theme.dart';
+import 'package:notiq/app/utils/datetime_extension.dart';
+import 'package:notiq/models/task.model.dart';
 import 'package:notiq/ui/screens/task_details_screen.dart';
 
 class TaskCard extends StatefulWidget {
-  final String title;
-  final String time;
-  final bool isCompleted;
-  final String taskId;
+  final Task task;
   final Function(bool?) onChanged;
 
-  const TaskCard({
-    super.key,
-    required this.title,
-    required this.time,
-    required this.isCompleted,
-    required this.taskId,
-    required this.onChanged,
-  });
+  const TaskCard({super.key, required this.task, required this.onChanged});
 
   @override
   State<TaskCard> createState() => _TaskCardState();
@@ -28,25 +21,34 @@ class _TaskCardState extends State<TaskCard> {
   @override
   void initState() {
     super.initState();
-    _isChecked = widget.isCompleted;
+    _isChecked = widget.task.isCompleted;
   }
 
   @override
   Widget build(BuildContext context) {
+    var task = widget.task;
+    final isOverdue = task.dueDate?.isOverdue ?? false;
+    final isDueToday = task.dueDate?.isDueToday ?? false;
     final theme = Theme.of(context);
 
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(
+          color: isOverdue && !task.isCompleted
+              ? Colors.red.shade200
+              : isDueToday && !task.isCompleted
+              ? Apptheme.orange.withOpacity(0.5)
+              : Colors.grey.shade200,
+        ),
       ),
       child: InkWell(
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => TaskDetailsScreen(taskId: widget.taskId),
+              builder: (context) => TaskDetailsScreen(taskId: task.id),
             ),
           );
         },
@@ -79,27 +81,43 @@ class _TaskCardState extends State<TaskCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
+                      task.title,
+                      style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        decoration: _isChecked
+                        decoration: task.isCompleted
                             ? TextDecoration.lineThrough
                             : null,
-                        color: _isChecked
-                            ? Colors.grey.shade500
-                            : Colors.grey.shade800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.time,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
-                        decoration: _isChecked
-                            ? TextDecoration.lineThrough
+                        color: isOverdue && !task.isCompleted
+                            ? Colors.red.shade700
                             : null,
                       ),
                     ),
+                    if (task.dueDate != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            isOverdue && !task.isCompleted
+                                ? Icons.warning_rounded
+                                : Icons.schedule,
+                            size: 16,
+                            color: isOverdue && !task.isCompleted
+                                ? Colors.red.shade400
+                                : Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _getTimeDisplay(task.dueDate!),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isOverdue && !task.isCompleted
+                                  ? Colors.red.shade400
+                                  : Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -109,5 +127,15 @@ class _TaskCardState extends State<TaskCard> {
         ),
       ),
     );
+  }
+
+  String _getTimeDisplay(DateTime dueDate) {
+    if (dueDate.isOverdue) {
+      return 'Overdue - ${DateFormat('MMM d').format(dueDate)}';
+    }
+    if (dueDate.isDueToday) {
+      return 'Due today - ${DateFormat('h:mm a').format(dueDate)}';
+    }
+    return DateFormat('MMM d, h:mm a').format(dueDate);
   }
 }

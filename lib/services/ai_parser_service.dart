@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:notiq/app/config/env.dart';
 import 'package:notiq/app/exception_handler/app_exceptions.dart';
 import 'package:notiq/app/utils/user_session_helper.dart';
@@ -10,100 +11,178 @@ import 'dart:convert';
 class AiParserService {
   final String apiKey;
   final String baseUrl;
+  final String model;
 
-  AiParserService({
-    this.apiKey = Env.apiKey,
-    this.baseUrl = "https://api.aimlapi.com/v1/chat/completions",
-  });
+  static const Map<String, Map<String, dynamic>> supportedModels = {
+    'gpt-4o-mini': {
+      'baseUrl': 'https://api.aimlapi.com/v1/chat/completions',
+      'type': 'openai',
+      'promptTemplate': '''
+        You are a task management assistant. Parse the following text into structured task data.
+        The current date is {{currentDate}}.
+
+        Rules for parsing:
+        1. Split into multiple tasks if multiple actions/items are mentioned
+        2. Convert relative dates to ISO dates
+        3. Infer priority based on urgency words
+        4. Infer category based on context
+        5. Clean task titles
+
+        Format the response as a JSON object with this structure:
+        {
+          "tasks": [
+            {
+              "title": "Clean, action-oriented task title",
+              "dueDate": "YYYY-MM-DDTHH:mm:ssZ",
+              "priority": "high|medium|low",
+              "category": "work|personal|shopping|health"
+            }
+          ]
+        }
+
+        Text to parse:
+        {{text}}
+
+        Return valid JSON only, no other text.
+      ''',
+    },
+    'gemini-pro': {
+      'baseUrl': '',
+      'type': 'gemini',
+      'promptTemplate': '''
+        Parse the following text into structured task data. Current date: {{currentDate}}.
+        Rules:
+        1. Split into multiple tasks if multiple actions/items are mentioned
+        2. Convert relative dates to ISO dates
+        3. Infer priority based on urgency words
+        4. Infer category based on context
+        5. Clean task titles
+
+        Return JSON with this structure:
+        {
+          "tasks": [
+            {
+              "title": "Task title",
+              "dueDate": "YYYY-MM-DDTHH:mm:ssZ",
+              "priority": "high|medium|low",
+              "category": "work|personal|shopping|health"
+            }
+          ]
+        }
+
+        Text: {{text}}
+      ''',
+    },
+  };
+
+  AiParserService({this.apiKey = Env.apiKey, String? model})
+    : model =
+          model ??
+          UserSession().getString('ai_model_preference') ??
+          'gpt-4o-mini',
+      baseUrl = supportedModels[model ?? 'gpt-4o-mini']?['baseUrl'] ?? '';
 
   /// Parse natural language text into a list of tasks using LLM
   Future<List<Task>> parseText(String text) async {
-    final prompt =
-        '''
-    You are a task management assistant. Parse the following text into structured task data.
-    The current date is ${DateTime.now().toIso8601String()}.
-
-    Rules for parsing:
-    1. Split into multiple tasks if multiple actions/items are mentioned
-    2. Convert relative dates (e.g., "tomorrow", "next week") to ISO dates
-    3. Infer priority based on urgency words ("urgent", "asap" -> high; "sometime", "when possible" -> low)
-    4. Infer category based on task context (work-related -> work; groceries -> shopping; etc.)
-    5. Clean and standardize task titles for clarity
-
-    Format the response as a JSON object with this structure:
-    {
-      "tasks": [
-        {
-          "title": "Clean, action-oriented task title",
-          "dueDate": "YYYY-MM-DDTHH:mm:ssZ", // ISO string or null if no date mentioned
-          "priority": "high|medium|low", // or null if not implied
-          "category": "work|personal|shopping|health" // or null if not clear
-        }
-      ]
-    }
-
-    Text to parse:
-    $text
-
-    Return valid JSON only, no other text.
-    ''';
-
     try {
-      final response = await http.post(
-        Uri.parse(baseUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
-        },
-        body: jsonEncode({
-          'model': 'gpt-4o-mini',
-          'messages': [
-            // Changed to array format
-            {
-              'role': 'system',
-              'content':
-                  'You are a task management assistant that parses text into structured task data.',
-            },
-            {'role': 'user', 'content': prompt},
-          ],
-          'temperature': 0.7,
-          'top_p': 0.7,
-          'frequency_penalty': 1,
-          'max_output_tokens': 512,
-          'top_k': 50,
-        }),
-      );
+      final modelConfig =
+          supportedModels[model] ?? supportedModels['gpt-4o-mini']!;
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw AiParserException(
-          'API request failed. Status code: ${response.statusCode}, Body: ${response.body}',
+      final currentDate = DateTime.now().toIso8601String();
+      final prompt = (modelConfig['promptTemplate'] as String)
+          .replaceAll('{{currentDate}}', currentDate)
+          .replaceAll('{{text}}', text);
+
+      if (modelConfig['type'] == 'gemini') {
+        final modelInstance = GenerativeModel(model: model, apiKey: apiKey);
+
+        final response = await modelInstance.generateContent([
+          Content.text(prompt),
+        ]);
+
+        final content = response.text;
+        if (content == null) {
+          throw AiParserException('No response from Gemini API');
+        }
+
+        final parsedContent = jsonDecode(content) as Map<String, dynamic>;
+        final taskList = (parsedContent['tasks'] as List)
+            .cast<Map<String, dynamic>>();
+
+        for (final taskData in taskList) {
+          _validateTaskData(taskData);
+        }
+
+        return taskList.map((taskData) {
+          var date = taskData['dueDate'] != null
+              ? DateTime.parse(taskData['dueDate'] as String)
+              : null;
+          return Task(
+            user_id: UserSession().getUser!.id,
+            title: taskData['title'] as String,
+            dueDate: date,
+            priority: taskData['priority'] as String?,
+            tag: taskData['category'] as String?,
+          );
+        }).toList();
+      } else if (modelConfig['type'] == 'openai') {
+        final response = await http.post(
+          Uri.parse(baseUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $apiKey',
+          },
+          body: jsonEncode({
+            'model': model,
+            'messages': [
+              {
+                'role': 'system',
+                'content':
+                    'You are a task management assistant that parses text into structured task data.',
+              },
+              {'role': 'user', 'content': prompt},
+            ],
+            'temperature': 0.7,
+            'top_p': 0.7,
+            'frequency_penalty': 1,
+            'max_output_tokens': 512,
+            'top_k': 50,
+          }),
         );
+
+        if (response.statusCode != 200 && response.statusCode != 201) {
+          debugPrint(
+            'Status code: ${response.statusCode}, Body: ${response.body}',
+          );
+          throw AiParserException('API request failed.');
+        }
+
+        final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+        final content =
+            responseJson['choices'][0]['message']['content'] as String;
+        final parsedContent = jsonDecode(content) as Map<String, dynamic>;
+        final taskList = (parsedContent['tasks'] as List)
+            .cast<Map<String, dynamic>>();
+
+        // Validate each task before creating Task objects
+        for (final taskData in taskList) {
+          _validateTaskData(taskData);
+        }
+
+        return taskList.map((taskData) {
+          var date = taskData['dueDate'] != null
+              ? DateTime.parse(taskData['dueDate'] as String)
+              : null;
+          return Task(
+            user_id: UserSession().getUser!.id,
+            title: taskData['title'] as String,
+            dueDate: date,
+            priority: taskData['priority'] as String?,
+            tag: taskData['category'] as String?,
+          );
+        }).toList();
       }
-
-      final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-      final content =
-          responseJson['choices'][0]['message']['content'] as String;
-      final parsedContent = jsonDecode(content) as Map<String, dynamic>;
-      final taskList = (parsedContent['tasks'] as List)
-          .cast<Map<String, dynamic>>();
-
-      // Validate each task before creating Task objects
-      for (final taskData in taskList) {
-        _validateTaskData(taskData);
-      }
-
-      return taskList.map((taskData) {
-        var date = taskData['dueDate'] != null
-            ? DateTime.parse(taskData['dueDate'] as String)
-            : null;
-        return Task(
-          user_id: UserSession().getUser!.id,
-          title: taskData['title'] as String,
-          dueDate: date,
-          priority: taskData['priority'] as String?,
-          tag: taskData['category'] as String?,
-        );
-      }).toList();
+      throw AiParserException('Unsupported model type or parsing failed.');
     } catch (e) {
       debugPrint('Error parsing with LLM: $e');
       rethrow;

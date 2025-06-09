@@ -137,12 +137,7 @@ class _AllTasksScreenState extends State<AllTasksScreen> {
                     final task = tasks[index];
                     return TaskCard(
                       key: ValueKey(task.id),
-                      taskId: task.id,
-                      title: task.title,
-                      time: task.dueDate != null
-                          ? "${TimeOfDay.fromDateTime(task.dueDate!).format(context)} • ${MaterialLocalizations.of(context).formatShortDate(task.dueDate!)}"
-                          : "No time set",
-                      isCompleted: task.isCompleted,
+                      task: task,
                       onChanged: (bool? value) async {
                         if (value != null) {
                           await provider.updateTaskCompletion(task.id, value);

@@ -9,6 +9,7 @@ import 'package:notiq/ui/dialogs/task_details_dialog.dart';
 import 'package:notiq/ui/screens/home_screen.dart';
 import 'package:notiq/ui/widgets/notification/toastification.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 class ParseConfirmationDialog extends StatelessWidget {
   final List<Task> tasks;
@@ -169,7 +170,13 @@ class _HomeLayoutState extends State<HomeLayout> {
     String text,
     void Function(void Function()) setModalState,
   ) async {
-    final service = AiParserService();
+    // Retrieve the preferred model from shared preferences
+    final prefs = await SharedPreferences.getInstance();
+    final preferredModel = prefs.getString('selected_model') ?? 'gpt-4o-mini';
+
+    // Create AiParserService with the preferred model
+    final service = AiParserService(model: preferredModel);
+
     try {
       final tasks = await AiParserService.withLoadingDialog(
         context,
@@ -335,7 +342,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                                           setState(() {
                                             isDisabled = true;
                                           });
-                                          // Navigator.of(context).pop();
+                                          Navigator.of(context).pop();
                                         },
                                       );
                                     }
@@ -401,15 +408,15 @@ class _HomeLayoutState extends State<HomeLayout> {
                                     ),
                                   ),
                                   FilledButton.icon(
-                                    onPressed: isDisabled
+                                    onPressed: isDisabled || provider.isLoading
                                         ? null
-                                        : () {
+                                        : () async {
                                             if (formKey.currentState!
                                                 .validate()) {
                                               provider.setNewTaskTitle(
                                                 taskController.text.trim(),
                                               );
-                                              handleAction(
+                                              await handleAction(
                                                 context: context,
                                                 call: provider.addTask,
                                                 onSuccess: (data) {
@@ -423,7 +430,8 @@ class _HomeLayoutState extends State<HomeLayout> {
                                             }
                                           },
                                     style: FilledButton.styleFrom(
-                                      backgroundColor: isDisabled
+                                      backgroundColor:
+                                          isDisabled || provider.isLoading
                                           ? Colors.grey.shade300
                                           : Apptheme.orange,
                                       foregroundColor: Colors.white,
@@ -431,8 +439,24 @@ class _HomeLayoutState extends State<HomeLayout> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
-                                    icon: const Icon(Icons.send, size: 18),
-                                    label: const Text('Add Task'),
+                                    icon: provider.isLoading
+                                        ? SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    Colors.white,
+                                                  ),
+                                            ),
+                                          )
+                                        : const Icon(Icons.send, size: 18),
+                                    label: Text(
+                                      provider.isLoading
+                                          ? 'Adding...'
+                                          : 'Add Task',
+                                    ),
                                   ),
                                 ],
                               ),

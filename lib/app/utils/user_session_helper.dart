@@ -7,10 +7,15 @@ class UserSession {
   UserSession._internal();
 
   AppUser? user;
+  final Map<String, dynamic> _preferences = {};
 
   void setUser(AppUser user) {
     this.user = user;
   }
 
   AppUser? get getUser => user;
+
+  String? getString(String key) {
+    return _preferences[key]?.toString();
+  }
 }

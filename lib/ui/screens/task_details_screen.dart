@@ -5,7 +5,6 @@ import 'package:notiq/app/theme/app_theme.dart';
 import 'package:notiq/app/utils/action_handler.dart';
 import 'package:notiq/app/utils/priority.dart';
 import 'package:notiq/data/providers/task_provider.dart';
-import 'package:notiq/models/task.model.dart';
 import 'package:provider/provider.dart';
 
 class TaskDetailsScreen extends StatefulWidget {

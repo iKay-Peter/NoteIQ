@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:notiq/app/utils/datetime_extension.dart';
 import 'package:notiq/app/utils/generic_response.dart';
 import 'package:notiq/app/utils/task_details.dart';
 import 'package:notiq/app/utils/user_session_helper.dart';
 import 'package:notiq/data/repositories/task_repository.dart';
 import 'package:notiq/models/task.model.dart';
+import 'package:notiq/services/notification_service.dart';
 
 class TaskProvider with ChangeNotifier {
   final TaskRepository _taskRepository;
@@ -23,6 +25,21 @@ class TaskProvider with ChangeNotifier {
   Task? get selectedTask => _selectedTask;
   TaskDetails get taskDetails => _taskDetails;
   String? get newTaskTitle => _newTaskTitle;
+
+  List<Task> get uncompletedTasks {
+    return _tasks.where((task) => !task.isCompleted).toList()..sort((a, b) {
+      // First sort by overdue status
+      if (a.dueDate?.isOverdue != b.dueDate?.isOverdue) {
+        return (b.dueDate?.isOverdue ?? false) ? 1 : -1;
+      }
+      // Then by due date
+      if (a.dueDate != null && b.dueDate != null) {
+        return a.dueDate!.compareTo(b.dueDate!);
+      }
+      // Tasks without due dates go last
+      return a.dueDate == null ? 1 : -1;
+    });
+  }
 
   // SETTERS
   void selectTask(Task? task) {
@@ -148,6 +165,7 @@ class TaskProvider with ChangeNotifier {
       var response = await _taskRepository.updateTask(task);
       if (response.isSuccess) {
         await fetchTasks();
+        await NotificationService().scheduleTaskNotification(task);
         notifyListeners();
         return GenericResponse(
           isSuccess: true,
@@ -240,7 +258,8 @@ class TaskProvider with ChangeNotifier {
       final task = createNewTask();
       var response = await _taskRepository.createTask(task);
       if (response.isSuccess) {
-        _tasks.insert(0, response.data!);
+        _tasks.add(response.data!);
+        await NotificationService().scheduleTaskNotification(task);
         resetTaskDetails(); // Reset the details after successful creation
         return GenericResponse(
           isSuccess: true,

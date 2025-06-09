@@ -121,15 +121,15 @@ class _HomePageState extends State<HomePage> {
                 "Due Today",
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.grey.shade600,
+                  fontSize: 14,
                 ),
               ),
               const SizedBox(height: 16),
               Expanded(
                 child: Consumer<TaskProvider>(
                   builder: (context, taskProvider, child) {
-                    final uncompletedTasks = taskProvider.tasks
-                        .where((task) => !task.isCompleted)
-                        .toList();
+                    // Combine, prioritizing due today
+                    final uncompletedTasks = taskProvider.uncompletedTasks;
 
                     if (uncompletedTasks.isEmpty) {
                       return Center(
@@ -170,12 +170,7 @@ class _HomePageState extends State<HomePage> {
                         final task = uncompletedTasks[index];
                         return TaskCard(
                           key: ValueKey(task.id),
-                          taskId: task.id,
-                          title: task.title,
-                          time: task.dueDate != null
-                              ? "${TimeOfDay.fromDateTime(task.dueDate!).format(context)} • ${MaterialLocalizations.of(context).formatShortDate(task.dueDate!)}"
-                              : "No time set",
-                          isCompleted: task.isCompleted,
+                          task: task,
                           onChanged: (bool? value) async {
                             if (value != null) {
                               await Future.delayed(
